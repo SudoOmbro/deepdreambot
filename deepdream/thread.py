@@ -15,9 +15,7 @@ class DreamerThread(Thread):
         self.current_job: DreamJob or None = None
 
     def do_current_job(self):
-        if self.current_job.iterate():
-            self.current_job.dream()
-        else:
+        if not self.current_job.iterate():
             self.current_job.notify()
             self.current_job = None
         sleep(5)
