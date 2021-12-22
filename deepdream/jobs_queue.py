@@ -1,5 +1,5 @@
 import logging
-from threading import Thread, Lock
+from threading import Lock
 
 from deepdream.api import DeepDreamAPI, ApiResult
 from deepdream.utils import Notifier
@@ -67,6 +67,11 @@ class DreamJob:
             self.iterations_left -= 1
         return True
 
+    def notify(self):
+        """ notify user through chosen notifier """
+        # TODO
+        self.notifier.notify(self.user_data, {})
+
 
 class DreamQueue:
 
@@ -81,22 +86,23 @@ class DreamQueue:
         DreamQueue._instance = self
         self.queue = []
 
+    def is_empty(self) -> bool:
+        return len(self.queue) == 0
+
+    @threadsafe
+    def add_job(self, job: DreamJob):
+        self.queue.append(job)  # TODO take job priority into account
+
+    @threadsafe
+    def take_job(self) -> DreamJob or None:
+        if len(self.queue) == 0:
+            return None
+        job = self.queue[0]
+        self.queue.pop(0)
+        return job
+
     @staticmethod
     def get_instance():
         if DreamQueue._instance is None:
             DreamQueue._instance = DreamQueue()
         return DreamQueue._instance
-
-    @staticmethod
-    @threadsafe
-    def add_job(job: DreamJob):
-        queue = DreamQueue.get_instance().queue
-        queue.append(job)  # TODO take job priority into account
-
-    @staticmethod
-    @threadsafe
-    def take_job() -> DreamJob:
-        queue = DreamQueue.get_instance().queue
-        job = queue[0]
-        queue.pop(0)
-        return job

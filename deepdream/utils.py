@@ -39,7 +39,7 @@ class Notifier:
     def __init__(self):
         pass
 
-    def notify(self, user_data: dict):
+    def notify(self, user_data: dict, message_data: dict):
         pass
 
 
