@@ -35,6 +35,8 @@ class DeepDreamAPI:
         self._api_key = api_key
 
     def dream(self, image: bytes or str) -> ApiResult:
+        if not self._api_key:
+            raise AttributeError("No API key was given!")
         if type(image) == bytes:
             r = post(
                 url=self._API_URL,

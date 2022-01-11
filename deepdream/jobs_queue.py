@@ -1,11 +1,13 @@
 import logging
 from threading import Lock
+from typing import List
 
 from deepdream.api import DeepDreamAPI, ApiResult
 from deepdream.utils import Notifier
 
 
 log = logging.getLogger()
+log.setLevel(logging.INFO)
 
 
 _QUEUE_LOCK = Lock()
@@ -50,6 +52,7 @@ class DreamJob:
         output: ApiResult = api.dream(self.image)
         if output.ok:
             self.image = output.url
+            log.info(f"{self.user_data} iternation succesful: {self.image} ({self.iterations_left} left)")
             return True
         log.error(f"Error while processing job: {self.__dict__}, message: {output.message}")
         self.errors += 1
@@ -69,8 +72,13 @@ class DreamJob:
 
     def notify(self):
         """ notify user through chosen notifier """
-        # TODO
-        self.notifier.notify(self.user_data, {})
+        self.notifier.notify(self.user_data, {"image": self.image})
+
+    def __str__(self):
+        return f"priority: {self.priority}\n" \
+               f"image: {self.image}\n" \
+               f"user data: {self.user_data}\n" \
+               f"iterations left: {self.iterations_left}\n"
 
 
 class DreamQueue:
@@ -84,21 +92,25 @@ class DreamQueue:
         if DreamQueue._instance is not None:
             raise Exception("This class is a singleton!")
         DreamQueue._instance = self
-        self.queue = []
+        self._queue: List[DreamJob] = []
 
     def is_empty(self) -> bool:
-        return len(self.queue) == 0
+        return len(self._queue) == 0
 
     @threadsafe
     def add_job(self, job: DreamJob):
-        self.queue.append(job)  # TODO take job priority into account
+        for i in range(len(self._queue)):
+            if self._queue[i].priority > job.priority:
+                self._queue.insert(i, job)
+                return
+        self._queue.append(job)
 
     @threadsafe
     def take_job(self) -> DreamJob or None:
-        if len(self.queue) == 0:
+        if len(self._queue) == 0:
             return None
-        job = self.queue[0]
-        self.queue.pop(0)
+        job = self._queue[0]
+        self._queue.pop(0)
         return job
 
     @staticmethod
@@ -106,3 +118,22 @@ class DreamQueue:
         if DreamQueue._instance is None:
             DreamQueue._instance = DreamQueue()
         return DreamQueue._instance
+
+    def __str__(self):
+        result = ""
+        for job in self._queue:
+            result += f"{str(job)}\n"
+        return result
+
+
+if __name__ == "__main__":
+    nn = Notifier()
+    job0 = DreamJob("", nn, 10, {}, 10)
+    job1 = DreamJob("", nn, 10, {}, 12)
+    job2 = DreamJob("", nn, 10, {}, 0)
+    job3 = DreamJob("", nn, 10, {}, 3)
+    DreamQueue.get_instance().add_job(job0)
+    DreamQueue.get_instance().add_job(job1)
+    DreamQueue.get_instance().add_job(job2)
+    DreamQueue.get_instance().add_job(job3)
+    print(DreamQueue.get_instance())

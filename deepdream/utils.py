@@ -43,6 +43,12 @@ class Notifier:
         pass
 
 
+class CliNotifier(Notifier):
+
+    def notify(self, user_data: dict, message_data: dict):
+        print(user_data, message_data)
+
+
 if __name__ == '__main__':
     img = bytes_from_file("image.jpg")
     downscale_image(img)

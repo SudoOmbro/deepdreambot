@@ -13,6 +13,7 @@ class DreamerThread(Thread):
         super().__init__()
         self._queue: DreamQueue = DreamQueue.get_instance()
         self.current_job: DreamJob or None = None
+        self.dead = False
 
     def do_current_job(self):
         if not self.current_job.iterate():
@@ -28,6 +29,8 @@ class DreamerThread(Thread):
 
     def run(self):
         while True:
+            if self.dead:
+                return
             try:
                 if self.current_job:
                     self.do_current_job()
@@ -37,3 +40,6 @@ class DreamerThread(Thread):
                 log.error(f"Error in DreamerThread: {e}")
                 self.current_job = None
                 sleep(10)
+
+    def kill(self):
+        self.dead = True
