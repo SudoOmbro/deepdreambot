@@ -1,6 +1,12 @@
 from typing import List, Dict
 
 
+class CliContext:
+
+    def __init__(self):
+        pass
+
+
 class Command:
 
     REQUIRED_ARGS = 0
@@ -12,13 +18,13 @@ class Command:
         self.context = context
         self.commands = commands
 
-    def execute(self) -> bool:
+    def execute(self, context: CliContext) -> bool:
         if len(self.args) < self.REQUIRED_ARGS:
             print(f"{self.NAME}: Too few arguments, this command requires {self.REQUIRED_ARGS} arguments")
             return False
-        return self.logic()
+        return self.logic(context)
 
-    def logic(self) -> bool:
+    def logic(self, context: CliContext) -> bool:
         """ implement command logic here, return true to close the program """
         return False
 
@@ -67,5 +73,5 @@ class Cli:
             if command:
                 if info:
                     print(command.get_info())
-                elif command.execute():
+                elif command.execute(self.context):
                     return

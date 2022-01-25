@@ -1,13 +1,14 @@
 from re import match
 
-from CLI.definitions import Command
+from CLI.definitions import Command, CliContext
 from deepdream.jobs_queue import DreamQueue, DreamJob
 from deepdream.utils import CliNotifier
 
 
-class CliContext:
+class MyContext(CliContext):
 
     def __init__(self, username):
+        super().__init__()
         self.username = username
 
 
@@ -15,7 +16,7 @@ class Help(Command):
 
     INFO = "Shows all commands with their descriptions"
 
-    def logic(self) -> bool:
+    def logic(self, context: MyContext) -> bool:
         print()
         for command in COMMANDS:
             print(str(COMMANDS[command].get_info()))
@@ -26,7 +27,7 @@ class Exit(Command):
 
     INFO = "Exits the program"
 
-    def logic(self) -> bool:
+    def logic(self, context: MyContext) -> bool:
         print("Ok, closing the program...")
         return True
 
@@ -35,7 +36,7 @@ class Test(Command):
 
     REQUIRED_ARGS = 2
 
-    def logic(self) -> bool:
+    def logic(self, context: MyContext) -> bool:
         print(f"arg0: {self.args[0]}, arg1: {self.args[1]}")
         return False
 
@@ -48,7 +49,7 @@ class Dream(Command):
            "arg0: image URL or local image path\n" \
            "arg1: desired iterations"
 
-    def logic(self) -> bool:
+    def logic(self, context: MyContext) -> bool:
         if match(self.URL_REGEX, self.args[0]):
             job = DreamJob(self.args[0], CliNotifier(), int(self.args[1]), {"username": self.context.username}, 0)
             DreamQueue.get_instance().add_job(job)
@@ -59,9 +60,19 @@ class Dream(Command):
         return False
 
 
+class WhoAmI(Command):
+
+    INFO = "tells you your username"
+
+    def logic(self, context: MyContext) -> bool:
+        print(f"you are {context.username}")
+        return False
+
+
 COMMANDS = {
     "help": Help,
     "test": Test,
     "dream": Dream,
-    "exit": Exit
+    "exit": Exit,
+    "whoami": WhoAmI
 }
