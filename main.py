@@ -12,7 +12,7 @@ def main():
     DeepDreamAPI.get_instance().set_api_key(settings["deepdream"]["apikey"])
     dreamer = DreamerThread()
     dreamer.start()
-    context: CliContext = MyContext(input("username: "))
+    context: MyContext = MyContext(input("username: "))
     cli = Cli(COMMANDS, context)
     cli.run()
 

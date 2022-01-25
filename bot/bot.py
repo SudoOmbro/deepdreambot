@@ -14,16 +14,16 @@ logger.setLevel(logging.INFO)
 
 class TelegramEvent:
 
-    def __init__(self, update: Update, context: CallbackContext, chat_id: int):
+    def __init__(self, update: Update, context: CallbackContext):
         self.update: Update = update
         self.context: CallbackContext = context
-        self.chat_id: int = chat_id
+        self.chat_id: int = update.effective_chat.id  # for convenience
 
 
 class TelegramFunctionBlueprint:
 
     def __call__(self, update: Update, context: CallbackContext):
-        return self.logic(TelegramEvent(update, context, update.effective_chat.id))
+        return self.logic(TelegramEvent(update, context))
 
     def logic(self, event: TelegramEvent):
         pass
