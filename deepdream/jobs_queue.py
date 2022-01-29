@@ -98,12 +98,13 @@ class DreamQueue:
         return len(self._queue) == 0
 
     @threadsafe
-    def add_job(self, job: DreamJob):
+    def add_job(self, job: DreamJob) -> int:
         for i in range(len(self._queue)):
             if self._queue[i].priority > job.priority:
                 self._queue.insert(i, job)
-                return
+                return i
         self._queue.append(job)
+        return 0
 
     @threadsafe
     def take_job(self) -> DreamJob or None:
