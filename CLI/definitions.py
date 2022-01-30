@@ -1,5 +1,7 @@
 from typing import List, Dict
 
+from deepdream.utils import Notifier
+
 
 class CliContext:
 
@@ -75,3 +77,9 @@ class Cli:
                     print(command.get_info())
                 elif command.execute(self.context):
                     return
+
+
+class CliNotifier(Notifier):
+
+    def notify(self, user_data: dict, message_data: dict):
+        print(user_data, message_data)

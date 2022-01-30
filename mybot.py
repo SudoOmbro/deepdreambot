@@ -1,17 +1,15 @@
-import io
+from telegram import Bot
 
-from PIL.Image import Image
-
-from bot.bot import TelegramFunctionBlueprint, TelegramEvent, TelegramBot
-from deepdream.jobs_queue import DreamQueue, DreamJob
 from deepdream.utils import Notifier
-from requests import get
-
-from utils.url_utils import download_image
 
 
 class TelegramNotifier(Notifier):
-    pass
+
+    def __init__(self, bot: Bot):
+        self.bot = bot
+
+    def notify(self, user_data: dict, message_data: dict):
+        self.bot.send_message(f"link: {message_data['image']}")
 
 
 IMAGE_URL_REGEX = r"http[s]??://.*\.(?:jpg|png)"

@@ -36,17 +36,8 @@ def downscale_image(b_image: bytes, max_size: int = 1000) -> bytes:
 
 class Notifier:
 
-    def __init__(self):
-        pass
-
     def notify(self, user_data: dict, message_data: dict):
         pass
-
-
-class CliNotifier(Notifier):
-
-    def notify(self, user_data: dict, message_data: dict):
-        print(user_data, message_data)
 
 
 if __name__ == '__main__':
