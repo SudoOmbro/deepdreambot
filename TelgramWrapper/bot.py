@@ -1,4 +1,5 @@
 import logging
+from typing import Tuple
 
 from telegram import Update
 from telegram.ext import Updater, CallbackContext, Dispatcher, Handler
@@ -22,11 +23,25 @@ class TelegramEvent:
 
 class TelegramFunctionBlueprint:
 
-    def __call__(self, update: Update, context: CallbackContext):
+    def __call__(self, update: Update, context: CallbackContext) -> int or None:
         return self.logic(TelegramEvent(update, context))
 
     def logic(self, event: TelegramEvent):
         pass
+
+
+class FunctionChain:
+
+    def __init__(self, functions: Tuple[TelegramFunctionBlueprint]):
+        self.functions: Tuple = functions
+
+    def __call__(self, update: Update, context: CallbackContext):
+        last_return_value = None
+        for func in self.functions:
+            ret = func(update, context)
+            if ret is not None:
+                last_return_value = ret
+        return last_return_value
 
 
 class TelegramBot:

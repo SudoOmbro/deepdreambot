@@ -52,6 +52,7 @@ class TelegramSendPrompt(TelegramFunctionBlueprint):
     def __init__(self, text: str, keyboard: InlineKeyboardMarkup or callable = None, return_value: int or None = None):
         """
         Class to handle sending prompts via Telegram.
+        Automatically optimizes itself depending on what you pass in.
 
         :param text:
             text of the message to send, if '{something}' is found in the text then the TelgramWrapper will try to format the
