@@ -6,7 +6,7 @@ from TelgramWrapper.prompts import _get_variable_names, _has_formatting
 def _test_format_message(message_text: str, variables: List[str], input_dict: dict) -> str:
     result_message = message_text
     for var in variables:
-        result_message = result_message.replace(f"{{{var}}}", input_dict.get(var, ""))
+        result_message = result_message.replace(f"{{{var}}}", str(input_dict.get(var, "")))
     return result_message
 
 

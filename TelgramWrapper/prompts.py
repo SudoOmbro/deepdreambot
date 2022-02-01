@@ -14,7 +14,7 @@ FORMATTING_REGEX = r"\{([a-zA-Z]+)\}"
 def _format_message(message_text: str, variables: List[str], event: TelegramEvent) -> str:
     result_message = message_text
     for var in variables:
-        result_message = result_message.replace(f"{{{var}}}", event.context.chat_data.get(var, ""))
+        result_message = result_message.replace(f"{{{var}}}", str(event.context.chat_data.get(var, "")))
     return result_message
 
 
