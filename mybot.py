@@ -1,5 +1,9 @@
-from telegram import Bot
+from json import load
 
+from telegram import Bot
+from telegram.ext import CommandHandler
+
+from TelgramWrapper.bot import TelegramBot
 from deepdream.utils import Notifier
 
 
@@ -16,4 +20,7 @@ IMAGE_URL_REGEX = r"http[s]??://.*\.(?:jpg|png)"
 
 
 if __name__ == "__main__":
-    pass
+    with open("config.json", "r") as config_file:
+        settings = load(config_file)
+    bot = TelegramBot(settings["telegram"]["token"])
+    bot.add_handler(CommandHandler())

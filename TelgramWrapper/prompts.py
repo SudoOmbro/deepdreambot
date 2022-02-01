@@ -1,37 +1,37 @@
-import re
+from re import match, findall
+from typing import List
 
 from telegram import InlineKeyboardMarkup
 
-from bot.bot import TelegramFunctionBlueprint, TelegramEvent
+from TelgramWrapper.bot import TelegramFunctionBlueprint, TelegramEvent
 
 
-FORMATTING_REGEX = r"\{.+\}"
+FORMATTING_REGEX = r"\{([a-zA-Z]+)\}"
 
 
-def _format_message(message_text: str, event: TelegramEvent) -> str:
-    # TODO
-    return message_text
+# Formatting ----
+
+def _format_message(message_text: str, variables: List[str], event: TelegramEvent) -> str:
+    result_message = message_text
+    for var in variables:
+        result_message = result_message.replace(f"{{{var}}}", event.context.chat_data.get(var, ""))
+    return result_message
 
 
 def _has_formatting(message_text: str) -> bool:
-    return re.match(FORMATTING_REGEX, message_text) is not None
+    return match(FORMATTING_REGEX, message_text) is not None
 
 
-# Behaviours
+def _get_variable_names(message_text: str) -> List[str]:
+    result: List[str] = []
+    matches = findall(FORMATTING_REGEX, message_text)
+    for variable in matches:
+        if variable not in result:
+            result.append(variable)
+    return result
 
-def _format_and_call(text: str, keyboard_func: callable, event: TelegramEvent):
-    event.context.bot.send_message(
-        text=_format_message(text, event),
-        keyboard_markup=keyboard_func(event)
-    )
 
-
-def _format_and_send(text: str, keyboard: InlineKeyboardMarkup, event: TelegramEvent):
-    event.context.bot.send_message(
-        text=_format_message(text, event),
-        keyboard_markup=keyboard
-    )
-
+# No formatting behaviours ----
 
 def _send_and_call(text: str, keyboard_func: callable, event: TelegramEvent):
     event.context.bot.send_message(
@@ -54,7 +54,7 @@ class TelegramSendPrompt(TelegramFunctionBlueprint):
         Class to handle sending prompts via Telegram.
 
         :param text:
-            text of the message to send, if '{something}' is found in the text then the bot will try to format the
+            text of the message to send, if '{something}' is found in the text then the TelgramWrapper will try to format the
             text replacing all '{something}' instances with whatever context.chat_data['something'] contains.
         :param keyboard:
             the inline keyboard to send or the function that will generate the inline keyboard to send.
@@ -67,15 +67,28 @@ class TelegramSendPrompt(TelegramFunctionBlueprint):
         self.keyboard = keyboard
         self.return_value = return_value
         if _has_formatting(text):
+            self.variables = _get_variable_names(text)
             if type(keyboard) == callable:
-                self.behaviour = _format_and_call
+                self.behaviour = self._format_and_call
             else:
-                self.behaviour = _format_and_send
+                self.behaviour = self._format_and_send
         else:
             if type(keyboard) == callable:
                 self.behaviour = _send_and_call
             else:
                 self.behaviour = _send_and_send
+
+    def _format_and_call(self, text: str, keyboard_func: callable, event: TelegramEvent):
+        event.context.bot.send_message(
+            text=_format_message(text, self.variables, event),
+            keyboard_markup=keyboard_func(event)
+        )
+
+    def _format_and_send(self, text: str, keyboard: InlineKeyboardMarkup, event: TelegramEvent):
+        event.context.bot.send_message(
+            text=_format_message(text, self.variables, event),
+            keyboard_markup=keyboard
+        )
 
     def logic(self, event: TelegramEvent):
         self.behaviour(self.text, self.keyboard, event)

@@ -1,4 +1,4 @@
-from bot.bot import TelegramFunctionBlueprint, TelegramEvent
+from TelgramWrapper.bot import TelegramFunctionBlueprint, TelegramEvent
 
 
 class TelegramGetVariableGeneric(TelegramFunctionBlueprint):
