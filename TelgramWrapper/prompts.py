@@ -80,7 +80,6 @@ class TelegramPrompt(TelegramFunctionBlueprint):
                 self.behaviour = _send_and_call
             else:
                 self.behaviour = _send_and_send
-        print(self.__dict__)
 
     def _format_and_call(self, text: str, keyboard_func: callable, event: TelegramEvent):
         event.context.bot.send_message(

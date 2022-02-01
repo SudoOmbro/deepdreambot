@@ -32,6 +32,9 @@ class TelegramFunctionBlueprint:
     def __call__(self, update: Update, context: CallbackContext) -> int or None:
         return self.logic(TelegramEvent(update, context))
 
+    def __str__(self):
+        return str(self.__dict__)
+
     def logic(self, event: TelegramEvent):
         pass
 
