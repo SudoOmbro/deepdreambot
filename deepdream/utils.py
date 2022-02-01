@@ -14,12 +14,14 @@ def image_from_bytes(image_bytes: bytes) -> Image:
 
 
 def image_to_bytes(image: Image) -> bytes:
+    # transform a PIL image into bytes
     buf = BytesIO()
     image.save(buf, format='JPEG')
     return buf.getvalue()
 
 
 def image_to_file(image: Image, path: str):
+    # save bytes as an image
     with open(path, "wb") as file:
         image.save(file, format="JPEG")
 
