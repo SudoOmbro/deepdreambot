@@ -1,6 +1,6 @@
 from typing import List
 
-from TelgramWrapper.prompts import _get_variable_names
+from TelgramWrapper.prompts import _get_variable_names, _has_formatting
 
 
 def _test_format_message(message_text: str, variables: List[str], input_dict: dict) -> str:
@@ -11,12 +11,13 @@ def _test_format_message(message_text: str, variables: List[str], input_dict: di
 
 
 if __name__ == "__main__":
+    print(_has_formatting("hi {name} aaaa"))
     test_text = "{name} {surname} is {name}, age {age}"
     test_vars = _get_variable_names(test_text)
     test_context = {
         "name": "Giuseppe",
         "surname": "Sborretti",
-        "age": "98"
+        "age": 98
     }
     print(
         _test_format_message(

@@ -1,4 +1,4 @@
-from re import match, findall
+from re import search, findall
 from typing import List
 
 from telegram import InlineKeyboardMarkup
@@ -19,7 +19,7 @@ def _format_message(message_text: str, variables: List[str], event: TelegramEven
 
 
 def _has_formatting(message_text: str) -> bool:
-    return match(FORMATTING_REGEX, message_text) is not None
+    return search(FORMATTING_REGEX, message_text) is not None
 
 
 def _get_variable_names(message_text: str) -> List[str]:
@@ -35,24 +35,26 @@ def _get_variable_names(message_text: str) -> List[str]:
 
 def _send_and_call(text: str, keyboard_func: callable, event: TelegramEvent):
     event.context.bot.send_message(
+        chat_id=event.chat_id,
         text=text,
-        keyboard_markup=keyboard_func(event)
+        reply_markup=keyboard_func(event)
     )
 
 
 def _send_and_send(text: str, keyboard: InlineKeyboardMarkup, event: TelegramEvent):
     event.context.bot.send_message(
+        chat_id=event.chat_id,
         text=text,
-        keyboard_markup=keyboard
+        reply_markup=keyboard
     )
 
 
-class TelegramSendPrompt(TelegramFunctionBlueprint):
+class TelegramPrompt(TelegramFunctionBlueprint):
 
     def __init__(self, text: str, keyboard: InlineKeyboardMarkup or callable = None, return_value: int or None = None):
         """
         Class to handle sending prompts via Telegram.
-        Automatically optimizes itself depending on what you pass in.
+        Automatically optimizes itself depending on the text & keyboard you pass in.
 
         :param text:
             text of the message to send, if '{something}' is found in the text then the TelgramWrapper will try to format the
@@ -78,17 +80,20 @@ class TelegramSendPrompt(TelegramFunctionBlueprint):
                 self.behaviour = _send_and_call
             else:
                 self.behaviour = _send_and_send
+        print(self.__dict__)
 
     def _format_and_call(self, text: str, keyboard_func: callable, event: TelegramEvent):
         event.context.bot.send_message(
+            chat_id=event.chat_id,
             text=_format_message(text, self.variables, event),
-            keyboard_markup=keyboard_func(event)
+            reply_markup=keyboard_func(event)
         )
 
     def _format_and_send(self, text: str, keyboard: InlineKeyboardMarkup, event: TelegramEvent):
         event.context.bot.send_message(
+            chat_id=event.chat_id,
             text=_format_message(text, self.variables, event),
-            keyboard_markup=keyboard
+            reply_markup=keyboard
         )
 
     def logic(self, event: TelegramEvent):
