@@ -72,7 +72,10 @@ class DreamJob:
 
     def notify(self):
         """ notify user through chosen notifier """
-        self.notifier.notify(self.user_data, {"image": self.image})
+        self.notifier.notify(
+            self.user_data,
+            {"message": "the processing of your image is done, here's it is:\n\n{}", "image": self.image}
+        )
 
     def __str__(self):
         return f"priority: {self.priority}\n" \

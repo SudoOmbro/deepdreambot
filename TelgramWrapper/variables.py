@@ -1,3 +1,5 @@
+from re import match
+
 from TelgramWrapper.bot import TelegramFunctionBlueprint, TelegramEvent
 
 
@@ -40,7 +42,46 @@ class TelegramGetVariableGeneric(TelegramFunctionBlueprint):
 
 class TelegramGetText(TelegramGetVariableGeneric):
 
-    def get_from_source(self, event: TelegramEvent):
+    def __init__(
+            self,
+            var_name: str,
+            transformation_function: callable = None,
+            validation_regex: str = None,
+            error_message: str = None,
+            return_value: int or None = None
+    ):
+        """
+        gets a text input from the user and optionally validates it.
+
+        :param var_name:
+            see <TelegramGetVariableGeneric>
+        :param transformation_function:
+            see <TelegramGetVariableGeneric>
+        :param validation_regex:
+            The regular expression used to validate the text input.
+            Leave empty if you don't want to validate
+        :param error_message:
+            The error message to send the user in case the given input wasn't validated correctly.
+            Leave empty for a default, generic response
+        :param return_value:
+            see <TelegramGetVariableGeneric>
+        """
+        super().__init__(var_name, transformation_function=transformation_function, return_value=return_value)
+        if validation_regex:
+            self.validation_regex = validation_regex
+            self.get_from_source: callable = self.get_validation
+        else:
+            self.get_from_source: callable = self.get_no_validation
+        self.error_message = error_message if error_message else "The given text doesn't match the pattern"
+
+    def get_validation(self, event: TelegramEvent):
+        text = event.update.message.text
+        if match(self.validation_regex, text):
+            return event.update.message.text
+        raise ValueError(self.error_message)
+
+    @staticmethod
+    def get_no_validation(event: TelegramEvent):
         return event.update.message.text
 
 

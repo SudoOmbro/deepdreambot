@@ -68,6 +68,8 @@ class FunctionChain:
 
 class TelegramBot:
 
+    # TODO add default error handler
+
     def __init__(self, token: str):
         self.updater: Updater = Updater(token=token, use_context=True)
         self.dispatcher: Dispatcher = self.updater.dispatcher

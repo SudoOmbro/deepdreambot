@@ -1,7 +1,7 @@
 from json import load
 
 from telegram import Bot
-from telegram.ext import CommandHandler, MessageHandler, Filters
+from telegram.ext import CommandHandler, MessageHandler, Filters, ConversationHandler
 
 from TelgramWrapper.bot import TelegramBot, FunctionChain
 from TelgramWrapper.prompts import TelegramPrompt
@@ -15,7 +15,7 @@ class TelegramNotifier(Notifier):
         self.bot = bot
 
     def notify(self, user_data: dict, message_data: dict):
-        self.bot.send_message(f"link: {message_data['image']}")
+        self.bot.send_message(message_data["message"].format(message_data["link"]))
 
 
 IMAGE_URL_REGEX = r"http[s]??://.*\.(?:jpg|png)"
@@ -34,4 +34,9 @@ if __name__ == "__main__":
             TelegramPrompt("hi {name}!")
         ))
     )
+    # my_bot.add_handler(ConversationHandler(
+    #     entry_points=[],
+    #     states=[],
+    #     fallbacks=[]
+    # ))
     my_bot.start_and_idle()
