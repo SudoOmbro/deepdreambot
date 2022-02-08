@@ -51,6 +51,8 @@ def _send_and_send(text: str, keyboard: InlineKeyboardMarkup, event: TelegramEve
 
 class TelegramPrompt(TelegramFunctionBlueprint):
 
+    # TODO support callable text (allow for custom messages beyond simple formatting + language support)
+
     def __init__(self, text: str, keyboard: InlineKeyboardMarkup or callable = None, return_value: int or None = None):
         """
         Class to handle sending prompts via Telegram.
