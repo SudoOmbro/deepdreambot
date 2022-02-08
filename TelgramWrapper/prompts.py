@@ -109,6 +109,8 @@ def _call_and_send_format(text_func: callable, keyboard: InlineKeyboardMarkup, e
 
 class TelegramPrompt(TelegramFunctionBlueprint):
 
+    # TODO add markdown support
+
     def __init__(
             self,
             text: str or callable,
