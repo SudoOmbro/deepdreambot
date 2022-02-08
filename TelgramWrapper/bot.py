@@ -66,13 +66,21 @@ class FunctionChain:
             return last_return_value
 
 
+def default_error_handler(update, context: CallbackContext):
+    typed_update: Update = update
+    # TODO implement
+    pass
+
+
 class TelegramBot:
 
-    # TODO add default error handler
-
-    def __init__(self, token: str):
+    def __init__(self, token: str, error_handler: callable = None):
         self.updater: Updater = Updater(token=token, use_context=True)
         self.dispatcher: Dispatcher = self.updater.dispatcher
+        if error_handler:
+            self.dispatcher.add_error_handler(error_handler)
+        else:
+            self.dispatcher.add_error_handler(default_error_handler)
 
     def add_handler(self, handler: Handler):
         self.dispatcher.add_handler(handler)

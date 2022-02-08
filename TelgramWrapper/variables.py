@@ -85,6 +85,12 @@ class TelegramGetText(TelegramGetVariableGeneric):
         return event.update.message.text
 
 
+class TelegramGetQuery(TelegramGetVariableGeneric):
+
+    def get_from_source(self, event: TelegramEvent):
+        return event.update.callback_query.data
+
+
 class TelegramGetImage(TelegramGetVariableGeneric):
 
     def get_from_source(self, event: TelegramEvent):
