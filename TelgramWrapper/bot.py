@@ -5,7 +5,7 @@ from telegram import Update
 from telegram.ext import Updater, CallbackContext, Dispatcher, Handler
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.ERROR,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
@@ -66,10 +66,16 @@ class FunctionChain:
             return last_return_value
 
 
-def default_error_handler(update, context: CallbackContext):
-    typed_update: Update = update
-    # TODO implement
+class TelegramUserError(Exception):
     pass
+
+
+def default_error_handler(update, context: CallbackContext):
+    error: Exception = context.error
+    if type(error) == TelegramUserError:
+        context.bot.send_message(error)
+    else:
+        logger.error(f"Error: {error}\n\ndue to update: {update.to_dict()}")
 
 
 class TelegramBot:
