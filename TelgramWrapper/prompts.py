@@ -3,7 +3,7 @@ from typing import List
 
 from telegram import InlineKeyboardMarkup
 
-from TelgramWrapper.bot import TelegramFunctionBlueprint, TelegramEvent
+from TelgramWrapper.generics import TelegramFunctionBlueprint, TelegramEvent
 
 
 FORMATTING_REGEX = r"\{([a-zA-Z]+)\}"

@@ -1,6 +1,6 @@
 from re import match
 
-from TelgramWrapper.bot import TelegramFunctionBlueprint, TelegramEvent, TelegramUserError
+from TelgramWrapper.generics import TelegramFunctionBlueprint, TelegramEvent, TelegramUserError
 
 
 class TelegramGetVariableGeneric(TelegramFunctionBlueprint):
