@@ -138,6 +138,8 @@ class TelegramGetText(TelegramGetVariableGeneric):
 
 class TelegramGetQuery(TelegramGetVariableGeneric):
 
+    # TODO add support for arbitrary_callback_data
+
     def get_from_source(self, event: TelegramEvent):
         return event.update.callback_query.data
 
