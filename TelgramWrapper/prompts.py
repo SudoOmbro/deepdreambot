@@ -126,6 +126,7 @@ class TelegramPrompt(TelegramFunctionBlueprint):
             text of the message to send or the function used to generate it.
             If '{something}' is found in the text then the TelegramWrapper will try to format the text replacing all
             '{something}' instances with whatever context.chat_data['something'] contains.
+            Can be callable, the logic defined above still applies, see the format_text parameter for more info.
         :param keyboard:
             the inline keyboard to send or the function that will generate the inline keyboard to send.
             Leave as None to not send any keyboard.
