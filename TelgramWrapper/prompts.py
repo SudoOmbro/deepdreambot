@@ -1,9 +1,20 @@
+import logging
+from enum import Enum
 from re import search, findall
 from typing import List
 
 from telegram import InlineKeyboardMarkup
 
 from TelgramWrapper.generics import TelegramFunctionBlueprint, TelegramEvent
+
+
+logging.basicConfig(
+    level=logging.ERROR,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 FORMATTING_REGEX = r"\{([a-zA-Z]+)\}"
@@ -116,7 +127,8 @@ class TelegramPrompt(TelegramFunctionBlueprint):
             text: str or callable,
             keyboard: InlineKeyboardMarkup or callable = None,
             format_text: bool or None = None,
-            return_value: int or None = None
+            return_value: int or None = None,
+            delete_last_message: bool = False
     ):
         """
         Class to handle sending prompts via Telegram.
@@ -138,10 +150,13 @@ class TelegramPrompt(TelegramFunctionBlueprint):
         :param return_value:
             the return value of the function, used to change state in conversation handlers.
             Leave at None to not change state.
+        :param delete_last_message:
+            if true it will delete either the last message sent by the user or the keyboard that generated the update.
         """
         self.text = text
         self.keyboard = keyboard
         self.return_value = return_value
+        self.delete_last_message = delete_last_message
         if type(text) == callable:
             if format_text is None:
                 if type(keyboard) == callable:
@@ -187,5 +202,17 @@ class TelegramPrompt(TelegramFunctionBlueprint):
         )
 
     def logic(self, event: TelegramEvent):
+        if self.delete_last_message:
+            try:
+                try:
+                    last_message_id = event.update.message.message_id
+                except AttributeError:
+                    last_message_id = event.update.callback_query.message.message_id
+                event.context.bot.delete_message(
+                    event.chat_id,
+                    last_message_id
+                )
+            except Exception as e:
+                logger.error(f"error while trying to delete message: {e}, update: {event.update.to_dict()}")
         self.behaviour(self.text, self.keyboard, event)
         return self.return_value

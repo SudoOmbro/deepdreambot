@@ -3,7 +3,8 @@ from json import load
 from telegram import Bot
 from telegram.ext import CommandHandler, MessageHandler, Filters, ConversationHandler
 
-from TelgramWrapper.bot import TelegramBot, FunctionChain
+from TelgramWrapper.bot import TelegramBot
+from TelgramWrapper.generics import FunctionChain
 from TelgramWrapper.prompts import TelegramPrompt
 from TelgramWrapper.variables import TelegramGetText
 from deepdream.utils import Notifier
