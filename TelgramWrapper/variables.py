@@ -96,7 +96,7 @@ class TelegramGetText(TelegramGetVariableGeneric):
     def __init__(
             self,
             var_name: str,
-            transformation_function: callable = None,
+            transformation_function: callable or None = None,
             validation_regex: str = None,
             error_message: str = None,
             return_value: int or None = None

@@ -120,6 +120,7 @@ def _call_and_send_format(text_func: callable, keyboard: InlineKeyboardMarkup, e
 class TelegramPrompt(TelegramFunctionBlueprint):
 
     # TODO add markdown support
+    # TODO add support for using always known user variables (like username, name or user ID)
 
     def __init__(
             self,
