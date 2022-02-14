@@ -1,5 +1,4 @@
 import logging
-from enum import Enum
 from re import search, findall
 from typing import List
 

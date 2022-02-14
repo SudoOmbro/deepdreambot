@@ -4,7 +4,7 @@ from telegram import Bot
 from telegram.ext import CommandHandler, MessageHandler, Filters, ConversationHandler
 
 from TelgramWrapper.bot import TelegramBot
-from TelgramWrapper.generics import FunctionChain
+from TelgramWrapper.generics import Chain
 from TelgramWrapper.prompts import TelegramPrompt
 from TelgramWrapper.variables import TelegramGetText
 from deepdream.utils import Notifier
@@ -30,7 +30,7 @@ if __name__ == "__main__":
         CommandHandler("start", TelegramPrompt("hello there! Send me your name and i'll say hi!"))
     )
     my_bot.add_handler(
-        MessageHandler(Filters.text & (~Filters.command), FunctionChain(
+        MessageHandler(Filters.text & (~Filters.command), Chain(
             TelegramGetText("name"),
             TelegramPrompt("hi {name}!")
         ))

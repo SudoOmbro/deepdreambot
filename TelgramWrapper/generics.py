@@ -30,7 +30,7 @@ class TelegramFunctionBlueprint:
         pass
 
 
-class FunctionChain:
+class Chain:
 
     def __init__(self, *args: TelegramFunctionBlueprint, return_value: bool = False):
         """
