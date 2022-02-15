@@ -55,7 +55,8 @@ if __name__ == "__main__":
                     "Contacts:\n"
                     "[Github](https://github.com/SudoOmbro)\n"
                     "[Instagram](https://www.instagram.com/_m_o_r_b_o_/)",
-                    delete_last_message=True
+                    delete_last_message=True,
+                    use_markdown=True
                 ),
                 MAIN_MENU_PROMPT_NODEL
             ),

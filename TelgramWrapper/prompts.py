@@ -47,79 +47,8 @@ def _autoformat_text(text_to_send: str, event: TelegramEvent):
     return text_to_send
 
 
-# No formatting behaviours ----
-
-def _send_and_call(text: str, keyboard_func: callable, event: TelegramEvent):
-    event.context.bot.send_message(
-        chat_id=event.chat_id,
-        text=text,
-        reply_markup=keyboard_func(event)
-    )
-
-
-def _send_and_send(text: str, keyboard: InlineKeyboardMarkup, event: TelegramEvent):
-    event.context.bot.send_message(
-        chat_id=event.chat_id,
-        text=text,
-        reply_markup=keyboard
-    )
-
-
-# text is callable
-
-def _call_and_call_autoformat(text_func: callable, keyboard_func: callable, event: TelegramEvent):
-    event.context.bot.send_message(
-        chat_id=event.chat_id,
-        text=_autoformat_text(text_func(event), event),
-        reply_markup=keyboard_func(event)
-    )
-
-
-def _call_and_call_noformat(text_func: callable, keyboard_func: callable, event: TelegramEvent):
-    event.context.bot.send_message(
-        chat_id=event.chat_id,
-        text=text_func(event),
-        reply_markup=keyboard_func(event)
-    )
-
-
-def _call_and_call_format(text_func: callable, keyboard_func: callable, event: TelegramEvent):
-    text_to_send = text_func(event)
-    event.context.bot.send_message(
-        chat_id=event.chat_id,
-        text=_format_message(text_to_send, _get_variable_names(text_to_send), event),
-        reply_markup=keyboard_func(event)
-    )
-
-
-def _call_and_send_autoformat(text_func: callable, keyboard: InlineKeyboardMarkup, event: TelegramEvent):
-    event.context.bot.send_message(
-        chat_id=event.chat_id,
-        text=_autoformat_text(text_func(event), event),
-        reply_markup=keyboard
-    )
-
-
-def _call_and_send_noformat(text_func: callable, keyboard: InlineKeyboardMarkup, event: TelegramEvent):
-    event.context.bot.send_message(
-        chat_id=event.chat_id,
-        text=text_func(event),
-        reply_markup=keyboard
-    )
-
-
-def _call_and_send_format(text_func: callable, keyboard: InlineKeyboardMarkup, event: TelegramEvent):
-    text_to_send = text_func(event)
-    event.context.bot.send_message(
-        chat_id=event.chat_id,
-        text=_format_message(text_to_send, _get_variable_names(text_to_send), event),
-        reply_markup=keyboard
-    )
-
-
 class TelegramPrompt(TelegramFunctionBlueprint):
 
-    # TODO add markdown support
     # TODO add support for using always known user variables (like username, name or user ID)
 
     def __init__(
@@ -128,7 +57,8 @@ class TelegramPrompt(TelegramFunctionBlueprint):
             keyboard: InlineKeyboardMarkup or callable = None,
             format_text: bool or None = None,
             return_value: int or None = None,
-            delete_last_message: bool = False
+            delete_last_message: bool = False,
+            use_markdown: bool = False
     ):
         """
         Class to handle sending prompts via Telegram.
@@ -152,28 +82,31 @@ class TelegramPrompt(TelegramFunctionBlueprint):
             Leave at None to not change state.
         :param delete_last_message:
             if true it will delete either the last message sent by the user or the keyboard that generated the update.
+        :param use_markdown:
+            tells telegram to format the message using markdown V2. By default it's false.
         """
         self.text = text
         self.keyboard = keyboard
         self.return_value = return_value
         self.delete_last_message = delete_last_message
+        self.parse_mode = "Markdown V2" if use_markdown else None
         if type(text) == callable:
             if format_text is None:
                 if type(keyboard) == callable:
-                    self.behaviour = _call_and_call_autoformat
+                    self.behaviour = self._call_and_call_autoformat
                 else:
-                    self.behaviour = _call_and_send_autoformat
+                    self.behaviour = self._call_and_send_autoformat
             else:
                 if format_text:
                     if type(keyboard) == callable:
-                        self.behaviour = _call_and_call_format
+                        self.behaviour = self._call_and_call_format
                     else:
-                        self.behaviour = _call_and_send_format
+                        self.behaviour = self._call_and_send_format
                 else:
                     if type(keyboard) == callable:
-                        self.behaviour = _call_and_call_noformat
+                        self.behaviour = self._call_and_call_noformat
                     else:
-                        self.behaviour = _call_and_send_noformat
+                        self.behaviour = self._call_and_send_noformat
         else:
             if _has_formatting(text):
                 self.variables = _get_variable_names(text)
@@ -183,22 +116,94 @@ class TelegramPrompt(TelegramFunctionBlueprint):
                     self.behaviour = self._format_and_send
             else:
                 if type(keyboard) == callable:
-                    self.behaviour = _send_and_call
+                    self.behaviour = self._send_and_call
                 else:
-                    self.behaviour = _send_and_send
+                    self.behaviour = self._send_and_send
 
     def _format_and_call(self, text: str, keyboard_func: callable, event: TelegramEvent):
         event.context.bot.send_message(
             chat_id=event.chat_id,
             text=_format_message(text, self.variables, event),
-            reply_markup=keyboard_func(event)
+            reply_markup=keyboard_func(event),
+            parse_mode=self.parse_mode
         )
 
     def _format_and_send(self, text: str, keyboard: InlineKeyboardMarkup, event: TelegramEvent):
         event.context.bot.send_message(
             chat_id=event.chat_id,
             text=_format_message(text, self.variables, event),
-            reply_markup=keyboard
+            reply_markup=keyboard,
+            parse_mode=self.parse_mode
+        )
+
+    # No formatting behaviours ----
+
+    def _send_and_call(self, text: str, keyboard_func: callable, event: TelegramEvent):
+        event.context.bot.send_message(
+            chat_id=event.chat_id,
+            text=text,
+            reply_markup=keyboard_func(event),
+            parse_mode=self.parse_mode
+        )
+
+    def _send_and_send(self, text: str, keyboard: InlineKeyboardMarkup, event: TelegramEvent):
+        event.context.bot.send_message(
+            chat_id=event.chat_id,
+            text=text,
+            reply_markup=keyboard,
+            parse_mode=self.parse_mode
+        )
+
+    # text is callable
+
+    def _call_and_call_autoformat(self, text_func: callable, keyboard_func: callable, event: TelegramEvent):
+        event.context.bot.send_message(
+            chat_id=event.chat_id,
+            text=_autoformat_text(text_func(event), event),
+            reply_markup=keyboard_func(event),
+            parse_mode=self.parse_mode
+        )
+
+    def _call_and_call_noformat(self, text_func: callable, keyboard_func: callable, event: TelegramEvent):
+        event.context.bot.send_message(
+            chat_id=event.chat_id,
+            text=text_func(event),
+            reply_markup=keyboard_func(event),
+            parse_mode=self.parse_mode
+        )
+
+    def _call_and_call_format(self, text_func: callable, keyboard_func: callable, event: TelegramEvent):
+        text_to_send = text_func(event)
+        event.context.bot.send_message(
+            chat_id=event.chat_id,
+            text=_format_message(text_to_send, _get_variable_names(text_to_send), event),
+            reply_markup=keyboard_func(event),
+            parse_mode=self.parse_mode
+        )
+
+    def _call_and_send_autoformat(self, text_func: callable, keyboard: InlineKeyboardMarkup, event: TelegramEvent):
+        event.context.bot.send_message(
+            chat_id=event.chat_id,
+            text=_autoformat_text(text_func(event), event),
+            reply_markup=keyboard,
+            parse_mode=self.parse_mode
+        )
+
+    def _call_and_send_noformat(self, text_func: callable, keyboard: InlineKeyboardMarkup, event: TelegramEvent):
+        event.context.bot.send_message(
+            chat_id=event.chat_id,
+            text=text_func(event),
+            reply_markup=keyboard,
+            parse_mode=self.parse_mode
+        )
+
+    def _call_and_send_format(self, text_func: callable, keyboard: InlineKeyboardMarkup, event: TelegramEvent):
+        text_to_send = text_func(event)
+        event.context.bot.send_message(
+            chat_id=event.chat_id,
+            text=_format_message(text_to_send, _get_variable_names(text_to_send), event),
+            reply_markup=keyboard,
+            parse_mode=self.parse_mode
         )
 
     def logic(self, event: TelegramEvent):
