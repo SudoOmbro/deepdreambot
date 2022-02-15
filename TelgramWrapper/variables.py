@@ -12,8 +12,9 @@ class TelegramGetVariableGeneric(TelegramFunctionBlueprint):
         :param var_name:
             name of the variable to store, this will be put in context.chat_data
 
-            if you pass None, this handler will just return the retrieved value. Useful in combination with
-            transformation functions to use the gathered data in some way and then throw it away.
+            if you pass None (and return value is None), this handler will just return the retrieved value. Useful in
+            combination with transformation functions to use the gathered data in some way and then throw it away or
+            to create main menus that lead to submenus.
 
             if you pass something like "dict_name:aaa" then this handler will try to put the received value in
             dict_name["aaa"], where dict_name is the context key for the dict and aaa is a parameter of said dict
@@ -37,15 +38,15 @@ class TelegramGetVariableGeneric(TelegramFunctionBlueprint):
             self.transformation_func = transformation_function
             self.__get: callable = self.__get_from_source_transform
         else:
-            self.__get: callable = self.__get_from_source_transform
+            self.__get: callable = self.__get_from_source_no_transform
         # set where to put the value
         if var_name:
-            if var_name.find(":"):
+            if var_name.find(":") != -1:
                 self.logic: callable = self.__set_dict
                 split_var_name = var_name.split(":")
                 self.dict_name = split_var_name[0]
                 self.var_name = split_var_name[1]
-            elif var_name.find("."):
+            elif var_name.find(".") != -1:
                 self.logic: callable = self.__set_object
                 split_var_name = var_name.split(".")
                 self.obj_name = split_var_name[0]
@@ -62,7 +63,7 @@ class TelegramGetVariableGeneric(TelegramFunctionBlueprint):
     def __get_from_source_transform(self, event: TelegramEvent):
         return self.transformation_func(self.get_from_source(event))
 
-    def __get_variable_no_transform(self, event: TelegramEvent):
+    def __get_from_source_no_transform(self, event: TelegramEvent):
         return self.get_from_source(event)
 
     # set handling
@@ -82,6 +83,9 @@ class TelegramGetVariableGeneric(TelegramFunctionBlueprint):
         return self.return_value
 
     def __no_set(self, event: TelegramEvent):
+        if self.return_value:
+            self.__get(event)
+            return self.return_value
         return self.__get(event)
 
     # Abstract function that needs to be implemented
@@ -95,7 +99,7 @@ class TelegramGetText(TelegramGetVariableGeneric):
 
     def __init__(
             self,
-            var_name: str,
+            var_name: str or None,
             transformation_function: callable or None = None,
             validation_regex: str = None,
             error_message: str = None,

@@ -60,7 +60,7 @@ class DeepDreamAPI:
             )
         return ApiResult(
             ok=False,
-            message=r.json()["status"]
+            message=r.json()
         )
 
 

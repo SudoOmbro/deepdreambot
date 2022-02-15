@@ -40,6 +40,7 @@ class DreamerThread(Thread):
                 log.error(f"Error in DreamerThread: {e}")
                 self.current_job = None
                 sleep(10)
+                # raise e
 
     def kill(self):
         self.dead = True

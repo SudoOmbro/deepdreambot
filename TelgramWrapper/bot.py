@@ -10,15 +10,17 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.ERROR)
 
 
 def default_error_handler(update, context: CallbackContext):
     error: Exception = context.error
     if type(error) == TelegramUserError:
-        context.bot.send_message(error)
+        # handle user error
+        context.bot.send_message(text=str(error), chat_id=update.effective_chat.id)
     else:
-        logger.error(f"Error: {error}\n\ndue to update: {update.to_dict()}")
+        # handle program error
+        logger.error(f"{error}\ndue to update: {update.to_dict()}\n")
 
 
 class TelegramBot:

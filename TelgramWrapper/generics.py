@@ -32,7 +32,7 @@ class TelegramFunctionBlueprint:
 
 class Chain:
 
-    def __init__(self, *args: TelegramFunctionBlueprint, return_value: bool = False):
+    def __init__(self, *args: TelegramFunctionBlueprint or callable, return_value: bool = True):
         """
         Used to call multiple functions from a single handle, useful to avoid creating custom functions for most
         interactions with the Bot.
@@ -42,7 +42,7 @@ class Chain:
             starting from the first and finishing with the last,
             returning the last non null value if return_value is True.
         :param return_value:
-            if True returns the last returned non-None value, if False it doesn't return anything.
+            if True returns the last returned non-None value, if False it doesn't return anything. By default it's true
         """
         self.functions: Tuple = args
         self.return_value: bool = return_value

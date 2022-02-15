@@ -2,7 +2,7 @@ import logging
 from re import search, findall
 from typing import List
 
-from telegram import InlineKeyboardMarkup
+from telegram import InlineKeyboardMarkup, ParseMode
 
 from TelgramWrapper.generics import TelegramFunctionBlueprint, TelegramEvent
 
@@ -49,7 +49,7 @@ def _autoformat_text(text_to_send: str, event: TelegramEvent):
 
 class TelegramPrompt(TelegramFunctionBlueprint):
 
-    # TODO add support for using always known user variables (like username, name or user ID)
+    # TODO? add support for using always known user variables (like username, name or user ID)
 
     def __init__(
             self,
@@ -58,7 +58,8 @@ class TelegramPrompt(TelegramFunctionBlueprint):
             format_text: bool or None = None,
             return_value: int or None = None,
             delete_last_message: bool = False,
-            use_markdown: bool = False
+            use_markdown: bool = False,
+            use_web_preview: bool = False
     ):
         """
         Class to handle sending prompts via Telegram.
@@ -89,7 +90,8 @@ class TelegramPrompt(TelegramFunctionBlueprint):
         self.keyboard = keyboard
         self.return_value = return_value
         self.delete_last_message = delete_last_message
-        self.parse_mode = "Markdown V2" if use_markdown else None
+        self.parse_mode = ParseMode.MARKDOWN_V2 if use_markdown else None
+        self.web_preview = not use_web_preview
         if type(text) == callable:
             if format_text is None:
                 if type(keyboard) == callable:
@@ -125,7 +127,8 @@ class TelegramPrompt(TelegramFunctionBlueprint):
             chat_id=event.chat_id,
             text=_format_message(text, self.variables, event),
             reply_markup=keyboard_func(event),
-            parse_mode=self.parse_mode
+            parse_mode=self.parse_mode,
+            disable_web_page_preview=self.web_preview
         )
 
     def _format_and_send(self, text: str, keyboard: InlineKeyboardMarkup, event: TelegramEvent):
@@ -133,7 +136,8 @@ class TelegramPrompt(TelegramFunctionBlueprint):
             chat_id=event.chat_id,
             text=_format_message(text, self.variables, event),
             reply_markup=keyboard,
-            parse_mode=self.parse_mode
+            parse_mode=self.parse_mode,
+            disable_web_page_preview=self.web_preview
         )
 
     # No formatting behaviours ----
@@ -143,7 +147,8 @@ class TelegramPrompt(TelegramFunctionBlueprint):
             chat_id=event.chat_id,
             text=text,
             reply_markup=keyboard_func(event),
-            parse_mode=self.parse_mode
+            parse_mode=self.parse_mode,
+            disable_web_page_preview=self.web_preview
         )
 
     def _send_and_send(self, text: str, keyboard: InlineKeyboardMarkup, event: TelegramEvent):
@@ -151,7 +156,8 @@ class TelegramPrompt(TelegramFunctionBlueprint):
             chat_id=event.chat_id,
             text=text,
             reply_markup=keyboard,
-            parse_mode=self.parse_mode
+            parse_mode=self.parse_mode,
+            disable_web_page_preview=self.web_preview
         )
 
     # text is callable
@@ -161,7 +167,8 @@ class TelegramPrompt(TelegramFunctionBlueprint):
             chat_id=event.chat_id,
             text=_autoformat_text(text_func(event), event),
             reply_markup=keyboard_func(event),
-            parse_mode=self.parse_mode
+            parse_mode=self.parse_mode,
+            disable_web_page_preview=self.web_preview
         )
 
     def _call_and_call_noformat(self, text_func: callable, keyboard_func: callable, event: TelegramEvent):
@@ -169,7 +176,8 @@ class TelegramPrompt(TelegramFunctionBlueprint):
             chat_id=event.chat_id,
             text=text_func(event),
             reply_markup=keyboard_func(event),
-            parse_mode=self.parse_mode
+            parse_mode=self.parse_mode,
+            disable_web_page_preview=self.web_preview
         )
 
     def _call_and_call_format(self, text_func: callable, keyboard_func: callable, event: TelegramEvent):
@@ -178,7 +186,8 @@ class TelegramPrompt(TelegramFunctionBlueprint):
             chat_id=event.chat_id,
             text=_format_message(text_to_send, _get_variable_names(text_to_send), event),
             reply_markup=keyboard_func(event),
-            parse_mode=self.parse_mode
+            parse_mode=self.parse_mode,
+            disable_web_page_preview=self.web_preview
         )
 
     def _call_and_send_autoformat(self, text_func: callable, keyboard: InlineKeyboardMarkup, event: TelegramEvent):
@@ -186,7 +195,8 @@ class TelegramPrompt(TelegramFunctionBlueprint):
             chat_id=event.chat_id,
             text=_autoformat_text(text_func(event), event),
             reply_markup=keyboard,
-            parse_mode=self.parse_mode
+            parse_mode=self.parse_mode,
+            disable_web_page_preview=self.web_preview
         )
 
     def _call_and_send_noformat(self, text_func: callable, keyboard: InlineKeyboardMarkup, event: TelegramEvent):
@@ -194,7 +204,8 @@ class TelegramPrompt(TelegramFunctionBlueprint):
             chat_id=event.chat_id,
             text=text_func(event),
             reply_markup=keyboard,
-            parse_mode=self.parse_mode
+            parse_mode=self.parse_mode,
+            disable_web_page_preview=self.web_preview
         )
 
     def _call_and_send_format(self, text_func: callable, keyboard: InlineKeyboardMarkup, event: TelegramEvent):
@@ -203,7 +214,8 @@ class TelegramPrompt(TelegramFunctionBlueprint):
             chat_id=event.chat_id,
             text=_format_message(text_to_send, _get_variable_names(text_to_send), event),
             reply_markup=keyboard,
-            parse_mode=self.parse_mode
+            parse_mode=self.parse_mode,
+            disable_web_page_preview=self.web_preview
         )
 
     def logic(self, event: TelegramEvent):

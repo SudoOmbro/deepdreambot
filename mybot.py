@@ -1,13 +1,15 @@
 from json import load
 
-from telegram import Bot
-from telegram.ext import CommandHandler, MessageHandler, Filters, ConversationHandler, CallbackQueryHandler
+from telegram import Bot, Update
+from telegram.ext import CommandHandler, MessageHandler, Filters, ConversationHandler, CallbackQueryHandler, \
+    CallbackContext
 
 from TelgramWrapper.bot import TelegramBot
-from TelgramWrapper.generics import Chain
+from TelgramWrapper.generics import Chain, TelegramEvent
 from TelgramWrapper.prompts import TelegramPrompt
-from TelgramWrapper.variables import TelegramGetText
+from TelgramWrapper.variables import TelegramGetText, TelegramGetImage
 from deepdream.api import DeepDreamAPI
+from deepdream.jobs_queue import DreamJob, DreamQueue
 from deepdream.thread import DreamerThread
 from deepdream.utils import Notifier
 from keyboards import MAIN_KEYBOARD
@@ -19,13 +21,42 @@ class TelegramNotifier(Notifier):
         self.bot = bot
 
     def notify(self, user_data: dict, message_data: dict):
-        self.bot.send_message(message_data["message"].format(message_data["link"]))
+        self.bot.send_message(
+            text=message_data["message"].format(message_data["image"]),
+            chat_id=int(user_data["chat_id"])
+        )
 
 
-IMAGE_URL_REGEX = r"http[s]??://.*\.(?:jpg|png)"
 MAIN_MENU_TEXT = "Welcome, Dreamer.\n\nWhat do you want to do?"
 MAIN_MENU_PROMPT_NODEL = TelegramPrompt(MAIN_MENU_TEXT, keyboard=MAIN_KEYBOARD)
 MAIN_MENU_PROMPT_DEL = TelegramPrompt(MAIN_MENU_TEXT, keyboard=MAIN_KEYBOARD, delete_last_message=True)
+IMAGE_ADDED_PROMPT = TelegramPrompt(
+                            "your image has been added to the queue, you'll be notified when the processing is done."
+                        )
+
+
+NOTIFIER: TelegramNotifier
+
+
+def add_dreamjob(update: Update, context: CallbackContext):
+    iterations: int = context.chat_data["iterations"]
+    image: bytearray or str = context.chat_data["image"]
+    if type(image) == bytearray:
+        image = bytes(image)
+    job = DreamJob(
+        image,
+        NOTIFIER,
+        iterations,
+        {
+            "username": update.effective_user.name,
+            "chat_id": update.effective_chat.id
+        },
+        0
+    )
+    DreamQueue.get_instance().add_job(job)
+    # clear memory
+    del context.chat_data["image"]
+    del context.chat_data["iterations"]
 
 
 if __name__ == "__main__":
@@ -38,6 +69,8 @@ if __name__ == "__main__":
     dreamer.start()
     # initialize bot
     my_bot = TelegramBot(settings["telegram"]["token"])
+    # init notifier
+    NOTIFIER = TelegramNotifier(my_bot.updater.bot)
     # add start handler
     my_bot.add_handler(
         CommandHandler(
@@ -76,7 +109,7 @@ if __name__ == "__main__":
             )
         ],
         states={
-            0: [MessageHandler(Filters.text, Chain(
+            0: [MessageHandler(Filters.text & (~Filters.command), Chain(
                 TelegramGetText(
                     "iterations",
                     transformation_function=lambda value: int(value),
@@ -88,7 +121,28 @@ if __name__ == "__main__":
                     return_value=1
                 )
             ))],
-            1: []  # TODO get image and add dreamjob to dreamer
+            1: [
+                MessageHandler(Filters.text & (~Filters.command), Chain(
+                    TelegramGetText(
+                        "image",
+                        validation_regex=r"http[s]??://.*\.(?:jpg|png)",
+                        error_message="The given link isn't an image",
+                        return_value=ConversationHandler.END
+                    ),
+                    add_dreamjob,
+                    IMAGE_ADDED_PROMPT,
+                    MAIN_MENU_PROMPT_NODEL
+                )),
+                MessageHandler(Filters.photo, Chain(
+                    TelegramGetImage(
+                        "image",
+                        return_value=ConversationHandler.END
+                    ),
+                    add_dreamjob,
+                    IMAGE_ADDED_PROMPT,
+                    MAIN_MENU_PROMPT_NODEL
+                ))
+            ]
         },
         fallbacks=[CommandHandler("end", MAIN_MENU_PROMPT_DEL)]
     ))

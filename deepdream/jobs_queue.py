@@ -52,7 +52,7 @@ class DreamJob:
         output: ApiResult = api.dream(self.image)
         if output.ok:
             self.image = output.url
-            log.info(f"{self.user_data} iternation succesful: {self.image} ({self.iterations_left} left)")
+            log.info(f"{self.user_data} iteration successful: {self.image} ({self.iterations_left} left)")
             return True
         log.error(f"Error while processing job: {self.__dict__}, message: {output.message}")
         self.errors += 1
