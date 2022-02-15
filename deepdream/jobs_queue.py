@@ -54,7 +54,7 @@ class DreamJob:
             self.image = output.url
             log.info(f"{self.user_data} iteration successful: {self.image} ({self.iterations_left} left)")
             return True
-        log.error(f"Error while processing job: {self.__dict__}, message: {output.message}")
+        log.error(f"Error while processing job from {self.user_data}:, message: {output.message}")
         self.errors += 1
         if self.errors == self._MAX_ERRORS:
             raise TooManyErrorsException(
@@ -63,7 +63,7 @@ class DreamJob:
         return False
 
     def iterate(self) -> bool:
-        """ returns true if another iteration in needed, otherwise it returns false """
+        """ returns true if another iteration is needed, otherwise it returns false """
         if self.iterations_left == 0:
             return False
         if self.dream():

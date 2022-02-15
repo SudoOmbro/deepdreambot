@@ -1,3 +1,4 @@
+from io import BufferedReader, BytesIO
 from time import sleep
 
 from requests import post
@@ -38,9 +39,11 @@ class DeepDreamAPI:
         if not self._api_key:
             raise AttributeError("No API key was given!")
         if type(image) == bytes:
+            with open("temp_image.jpg", "wb") as file:
+                file.write(image)
             r = post(
                 url=self._API_URL,
-                files={"image": image},
+                files={"image": open("temp_image.jpg", "rb")},
                 headers={"api-key": self._api_key}
             )
         elif type(image) == str:
@@ -58,9 +61,11 @@ class DeepDreamAPI:
                 url=result["output_url"],
                 message="Image processing ok"
             )
+        result = r.json()
+        result["code"] = r.status_code
         return ApiResult(
             ok=False,
-            message=r.json()
+            message=str(result)
         )
 
 

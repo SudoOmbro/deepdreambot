@@ -37,10 +37,10 @@ class DreamerThread(Thread):
                 else:
                     self.get_new_job()
             except Exception as e:
-                log.error(f"Error in DreamerThread: {e}")
-                self.current_job = None
-                sleep(10)
-                # raise e
+                # log.error(f"Error in DreamerThread: {e}")
+                # self.current_job = None
+                # sleep(10)
+                raise e
 
     def kill(self):
         self.dead = True

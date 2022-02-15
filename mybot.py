@@ -5,7 +5,7 @@ from telegram.ext import CommandHandler, MessageHandler, Filters, ConversationHa
     CallbackContext
 
 from TelgramWrapper.bot import TelegramBot
-from TelgramWrapper.generics import Chain, TelegramEvent
+from TelgramWrapper.generics import Chain
 from TelgramWrapper.prompts import TelegramPrompt
 from TelgramWrapper.variables import TelegramGetText, TelegramGetImage
 from deepdream.api import DeepDreamAPI
@@ -40,9 +40,7 @@ NOTIFIER: TelegramNotifier
 
 def add_dreamjob(update: Update, context: CallbackContext):
     iterations: int = context.chat_data["iterations"]
-    image: bytearray or str = context.chat_data["image"]
-    if type(image) == bytearray:
-        image = bytes(image)
+    image: bytes or str = context.chat_data["image"]
     job = DreamJob(
         image,
         NOTIFIER,

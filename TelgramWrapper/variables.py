@@ -151,5 +151,5 @@ class TelegramGetQuery(TelegramGetVariableGeneric):
 class TelegramGetImage(TelegramGetVariableGeneric):
 
     def get_from_source(self, event: TelegramEvent):
-        image_id: int = event.update.message.photo[-1].file_id
-        return event.context.bot.getFile(image_id).download_as_bytearray()
+        file = event.update.message.photo[-1].get_file()
+        return bytes(file.download_as_bytearray())
