@@ -39,6 +39,7 @@ NOTIFIER: TelegramNotifier
 
 
 def add_dreamjob(update: Update, context: CallbackContext):
+    # TODO switch to PyTorch implementation
     iterations: int = context.chat_data["iterations"]
     image: bytes or str = context.chat_data["image"]
     job = DreamJob(
@@ -58,6 +59,9 @@ def add_dreamjob(update: Update, context: CallbackContext):
 
 
 if __name__ == "__main__":
+    # TODO create custom Handlers that have ready made filters in them  (TextHandler, PhotoHandler, KeyboardHandler)
+    # TODO add default context and a function to intialize the default context
+    # TODO add function to clear current context
     # Load settings
     with open("config.json", "r") as config_file:
         settings = load(config_file)
