@@ -56,7 +56,6 @@ def add_dreamjob(update: Update, context: CallbackContext):
 
 
 if __name__ == "__main__":
-    # TODO add default context and a function to intialize the default context
     # Load settings
     with open("config.json", "r") as config_file:
         settings = load(config_file)
