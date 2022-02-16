@@ -1,13 +1,13 @@
 from json import load
 
 from telegram import Bot, Update
-from telegram.ext import CommandHandler, MessageHandler, Filters, ConversationHandler, CallbackQueryHandler, \
-    CallbackContext
+from telegram.ext import CommandHandler, ConversationHandler, CallbackContext
 
 from TelgramWrapper.bot import TelegramBot
 from TelgramWrapper.generics import Chain
+from TelgramWrapper.handlers import TextHandler, PhotoHandler, KeyboardHandler
 from TelgramWrapper.prompts import TelegramPrompt
-from TelgramWrapper.variables import TelegramGetText, TelegramGetImage
+from TelgramWrapper.variables import TelegramGetText, TelegramGetImage, clear_vars
 from deepdream.api import DeepDreamAPI
 from deepdream.jobs_queue import DreamJob, DreamQueue
 from deepdream.thread import DreamerThread
@@ -53,15 +53,10 @@ def add_dreamjob(update: Update, context: CallbackContext):
         0
     )
     DreamQueue.get_instance().add_job(job)
-    # clear memory
-    del context.chat_data["image"]
-    del context.chat_data["iterations"]
 
 
 if __name__ == "__main__":
-    # TODO create custom Handlers that have ready made filters in them  (TextHandler, PhotoHandler, KeyboardHandler)
     # TODO add default context and a function to intialize the default context
-    # TODO add function to clear current context
     # Load settings
     with open("config.json", "r") as config_file:
         settings = load(config_file)
@@ -82,7 +77,7 @@ if __name__ == "__main__":
     )
     # add about handler
     my_bot.add_handler(
-        CallbackQueryHandler(
+        KeyboardHandler(
             Chain(
                 TelegramPrompt(
                     "Bot built by @LordOmbro\n\n"
@@ -101,7 +96,7 @@ if __name__ == "__main__":
     # add dream handler
     my_bot.add_handler(ConversationHandler(
         entry_points=[
-            CallbackQueryHandler(
+            KeyboardHandler(
                 TelegramPrompt(
                     "And dream you will. How many iterations shall i do? (send a number between 1 and 10)",
                     return_value=0,
@@ -111,7 +106,7 @@ if __name__ == "__main__":
             )
         ],
         states={
-            0: [MessageHandler(Filters.text & (~Filters.command), Chain(
+            0: [TextHandler(Chain(
                 TelegramGetText(
                     "iterations",
                     transformation_function=lambda value: int(value),
@@ -124,7 +119,7 @@ if __name__ == "__main__":
                 )
             ))],
             1: [
-                MessageHandler(Filters.text & (~Filters.command), Chain(
+                TextHandler(Chain(
                     TelegramGetText(
                         "image",
                         validation_regex=r"http[s]??://.*\.(?:jpg|png)",
@@ -133,15 +128,17 @@ if __name__ == "__main__":
                     ),
                     add_dreamjob,
                     IMAGE_ADDED_PROMPT,
+                    clear_vars,
                     MAIN_MENU_PROMPT_NODEL
                 )),
-                MessageHandler(Filters.photo, Chain(
+                PhotoHandler(Chain(
                     TelegramGetImage(
                         "image",
                         return_value=ConversationHandler.END
                     ),
                     add_dreamjob,
                     IMAGE_ADDED_PROMPT,
+                    clear_vars,
                     MAIN_MENU_PROMPT_NODEL
                 ))
             ]

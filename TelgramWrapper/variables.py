@@ -1,5 +1,8 @@
 from re import match
 
+from telegram import Update
+from telegram.ext import CallbackContext
+
 from TelgramWrapper.generics import TelegramFunctionBlueprint, TelegramEvent, TelegramUserError
 
 
@@ -153,3 +156,7 @@ class TelegramGetImage(TelegramGetVariableGeneric):
     def get_from_source(self, event: TelegramEvent):
         file = event.update.message.photo[-1].get_file()
         return bytes(file.download_as_bytearray())
+
+
+def clear_vars(update: Update, context: CallbackContext):
+    context.chat_data.clear()

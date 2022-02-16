@@ -16,6 +16,7 @@ class TelegramEvent:
         self.update: Update = update
         self.context: CallbackContext = context
         self.chat_id: int = update.effective_chat.id  # for convenience
+        self.vars = context.chat_data  # for convenience
 
 
 class TelegramFunctionBlueprint:
