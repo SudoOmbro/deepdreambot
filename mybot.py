@@ -5,7 +5,7 @@ from telegram.ext import CommandHandler, ConversationHandler, CallbackContext
 
 from TelgramWrapper.bot import TelegramBot
 from TelgramWrapper.generics import Chain
-from TelgramWrapper.handlers import TextHandler, PhotoHandler, KeyboardHandler
+from TelgramWrapper.handlers import TextHandler, PhotoHandler, KeyboardHandler, END_CONVERSATION
 from TelgramWrapper.prompts import TelegramPrompt
 from TelgramWrapper.variables import TelegramGetText, TelegramGetImage, clear_vars
 from deepdream.api import DeepDreamAPI
@@ -53,6 +53,14 @@ def add_dreamjob(update: Update, context: CallbackContext):
         0
     )
     DreamQueue.get_instance().add_job(job)
+
+
+ADD_JOB_ROUTINE = Chain(
+    add_dreamjob,
+    IMAGE_ADDED_PROMPT,
+    clear_vars,
+    MAIN_MENU_PROMPT_NODEL
+)
 
 
 if __name__ == "__main__":
@@ -117,30 +125,22 @@ if __name__ == "__main__":
                     return_value=1
                 )
             ))],
-            1: [
-                TextHandler(Chain(
+            1: [TextHandler(Chain(
                     TelegramGetText(
                         "image",
                         validation_regex=r"http[s]??://.*\.(?:jpg|png)",
                         error_message="The given link isn't an image",
-                        return_value=ConversationHandler.END
+                        return_value=END_CONVERSATION
                     ),
-                    add_dreamjob,
-                    IMAGE_ADDED_PROMPT,
-                    clear_vars,
-                    MAIN_MENU_PROMPT_NODEL
+                    ADD_JOB_ROUTINE
                 )),
                 PhotoHandler(Chain(
                     TelegramGetImage(
                         "image",
-                        return_value=ConversationHandler.END
+                        return_value=END_CONVERSATION
                     ),
-                    add_dreamjob,
-                    IMAGE_ADDED_PROMPT,
-                    clear_vars,
-                    MAIN_MENU_PROMPT_NODEL
-                ))
-            ]
+                    ADD_JOB_ROUTINE
+            ))]
         },
         fallbacks=[CommandHandler("end", MAIN_MENU_PROMPT_DEL)]
     ))

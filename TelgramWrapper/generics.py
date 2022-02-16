@@ -37,6 +37,7 @@ class Chain:
         """
         Used to call multiple functions from a single handle, useful to avoid creating custom functions for most
         interactions with the Bot.
+        Chains can be Nested in other chains to create subroutines.
 
         :param args:
             a tuple containing the functions that will be called,

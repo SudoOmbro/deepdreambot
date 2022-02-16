@@ -158,7 +158,7 @@ class TelegramGetImage(TelegramGetVariableGeneric):
         return bytes(file.download_as_bytearray())
 
 
-# TODO add default context and a function to intialize the default context
+# TODO add default context and a function to initialize the default context
 
 
 def clear_vars(update: Update, context: CallbackContext):

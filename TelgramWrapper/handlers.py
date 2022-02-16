@@ -1,6 +1,9 @@
-from telegram.ext import CallbackQueryHandler, MessageHandler, Filters
+from telegram.ext import CallbackQueryHandler, MessageHandler, Filters, ConversationHandler
 
 from TelgramWrapper.generics import TelegramFunctionBlueprint
+
+
+END_CONVERSATION = ConversationHandler.END
 
 
 class KeyboardHandler(CallbackQueryHandler):
