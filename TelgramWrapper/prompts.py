@@ -47,7 +47,7 @@ def _autoformat_text(text_to_send: str, event: TelegramEvent):
     return text_to_send
 
 
-class TelegramPrompt(TelegramFunctionBlueprint):
+class Prompt(TelegramFunctionBlueprint):
 
     # TODO? add support for using always known user variables (like username, name or user ID)
 

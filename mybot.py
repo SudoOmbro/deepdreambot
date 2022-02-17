@@ -6,8 +6,8 @@ from telegram.ext import CommandHandler, ConversationHandler, CallbackContext
 from TelgramWrapper.bot import TelegramBot
 from TelgramWrapper.generics import Chain
 from TelgramWrapper.handlers import TextHandler, PhotoHandler, KeyboardHandler, END_CONVERSATION
-from TelgramWrapper.prompts import TelegramPrompt
-from TelgramWrapper.variables import TelegramGetText, TelegramGetPhoto, clear_vars
+from TelgramWrapper.prompts import Prompt
+from TelgramWrapper.variables import GetText, GetPhoto, clear_vars
 from deepdream.api import DeepDreamAPI
 from deepdream.jobs_queue import DreamJob, DreamQueue
 from deepdream.thread import DreamerThread
@@ -28,9 +28,9 @@ class TelegramNotifier(Notifier):
 
 
 MAIN_MENU_TEXT = "Welcome, Dreamer.\n\nWhat do you want to do?"
-MAIN_MENU_PROMPT_NODEL = TelegramPrompt(MAIN_MENU_TEXT, keyboard=MAIN_KEYBOARD)
-MAIN_MENU_PROMPT_DEL = TelegramPrompt(MAIN_MENU_TEXT, keyboard=MAIN_KEYBOARD, delete_last_message=True)
-IMAGE_ADDED_PROMPT = TelegramPrompt(
+MAIN_MENU_PROMPT_NODEL = Prompt(MAIN_MENU_TEXT, keyboard=MAIN_KEYBOARD)
+MAIN_MENU_PROMPT_DEL = Prompt(MAIN_MENU_TEXT, keyboard=MAIN_KEYBOARD, delete_last_message=True)
+IMAGE_ADDED_PROMPT = Prompt(
                             "your image has been added to the queue, you'll be notified when the processing is done."
                         )
 
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     my_bot.add_handler(
         KeyboardHandler(
             Chain(
-                TelegramPrompt(
+                Prompt(
                     "Bot built by @LordOmbro\n\n"
                     "Code hosted [here](https://github.com/SudoOmbro/deepdreambot)\n\n"
                     "Contacts:\n"
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     my_bot.add_handler(ConversationHandler(
         entry_points=[
             KeyboardHandler(
-                TelegramPrompt(
+                Prompt(
                     "And dream you will. How many iterations shall i do? (send a number between 1 and 10)",
                     return_value=0,
                     delete_last_message=True
@@ -114,19 +114,19 @@ if __name__ == "__main__":
         ],
         states={
             0: [TextHandler(Chain(
-                TelegramGetText(
+                GetText(
                     "iterations",
                     transformation_function=lambda value: int(value),
                     validation_regex=r"\b([1-9]|10)\b",
                     error_message="The given input wasn't valid"
                 ),
-                TelegramPrompt(
+                Prompt(
                     "{iterations} iterations it is then, now send me an image or the link of an image to dream about",
                     return_value=1
                 )
             ))],
             1: [TextHandler(Chain(
-                    TelegramGetText(
+                    GetText(
                         "image",
                         validation_regex=r"http[s]??://.*\.(?:jpg|png)",
                         error_message="The given link isn't an image",
@@ -135,7 +135,7 @@ if __name__ == "__main__":
                     ADD_JOB_ROUTINE
                 )),
                 PhotoHandler(Chain(
-                    TelegramGetPhoto(
+                    GetPhoto(
                         "image",
                         return_value=END_CONVERSATION
                     ),

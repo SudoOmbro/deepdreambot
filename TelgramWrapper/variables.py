@@ -7,7 +7,7 @@ from telegram.ext import CallbackContext
 from TelgramWrapper.generics import TelegramFunctionBlueprint, TelegramEvent, TelegramUserError
 
 
-class TelegramGetVariableGeneric(TelegramFunctionBlueprint):
+class GetVariableGeneric(TelegramFunctionBlueprint):
 
     def __init__(self, var_name: str or None, transformation_function: callable = None, return_value: int or None = None):
         """
@@ -99,7 +99,7 @@ class TelegramGetVariableGeneric(TelegramFunctionBlueprint):
         return None
 
 
-class TelegramGetText(TelegramGetVariableGeneric):
+class GetText(GetVariableGeneric):
 
     def __init__(
             self,
@@ -144,7 +144,7 @@ class TelegramGetText(TelegramGetVariableGeneric):
         return event.update.message.text
 
 
-class TelegramGetQuery(TelegramGetVariableGeneric):
+class GetKeyboardInput(GetVariableGeneric):
 
     # TODO add support for arbitrary_callback_data
 
@@ -152,7 +152,7 @@ class TelegramGetQuery(TelegramGetVariableGeneric):
         return event.update.callback_query.data
 
 
-class TelegramGetPhoto(TelegramGetVariableGeneric):
+class GetPhoto(GetVariableGeneric):
 
     def get_from_source(self, event: TelegramEvent):
         file = event.update.message.photo[-1].get_file()
@@ -164,7 +164,7 @@ def clear_vars(update: Update, context: CallbackContext):
     context.chat_data.clear()
 
 
-class TelegramInitContext(TelegramFunctionBlueprint):
+class InitDefaultContext(TelegramFunctionBlueprint):
 
     def __init__(self, default_context: dict, clear_context: bool = False):
         """
