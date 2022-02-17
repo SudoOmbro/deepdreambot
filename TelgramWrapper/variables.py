@@ -1,3 +1,4 @@
+from copy import deepcopy
 from re import match
 
 from telegram import Update
@@ -151,15 +152,32 @@ class TelegramGetQuery(TelegramGetVariableGeneric):
         return event.update.callback_query.data
 
 
-class TelegramGetImage(TelegramGetVariableGeneric):
+class TelegramGetPhoto(TelegramGetVariableGeneric):
 
     def get_from_source(self, event: TelegramEvent):
         file = event.update.message.photo[-1].get_file()
         return bytes(file.download_as_bytearray())
 
 
-# TODO add default context and a function to initialize the default context
-
-
 def clear_vars(update: Update, context: CallbackContext):
+    """ Used to clear the current user context """
     context.chat_data.clear()
+
+
+class TelegramInitContext(TelegramFunctionBlueprint):
+
+    def __init__(self, default_context: dict, clear_context: bool = False):
+        """
+        Used to set the given dictionary as the current user's context.
+
+        :param default_context: the desired context
+        :param clear_context: defines whether the user's context should be cleared before initializing the new one
+        """
+        self.default_context = default_context
+        self.clear_context = clear_context
+
+    def logic(self, event: TelegramEvent):
+        if self.clear_context:
+            clear_vars(event.update, event.context)
+        for item in self.default_context:
+            event.context.chat_data[item] = deepcopy(self.default_context[item])

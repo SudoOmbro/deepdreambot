@@ -7,7 +7,7 @@ from TelgramWrapper.bot import TelegramBot
 from TelgramWrapper.generics import Chain
 from TelgramWrapper.handlers import TextHandler, PhotoHandler, KeyboardHandler, END_CONVERSATION
 from TelgramWrapper.prompts import TelegramPrompt
-from TelgramWrapper.variables import TelegramGetText, TelegramGetImage, clear_vars
+from TelgramWrapper.variables import TelegramGetText, TelegramGetPhoto, clear_vars
 from deepdream.api import DeepDreamAPI
 from deepdream.jobs_queue import DreamJob, DreamQueue
 from deepdream.thread import DreamerThread
@@ -135,7 +135,7 @@ if __name__ == "__main__":
                     ADD_JOB_ROUTINE
                 )),
                 PhotoHandler(Chain(
-                    TelegramGetImage(
+                    TelegramGetPhoto(
                         "image",
                         return_value=END_CONVERSATION
                     ),
