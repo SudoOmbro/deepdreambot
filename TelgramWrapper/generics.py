@@ -48,6 +48,7 @@ class Chain:
         """
         self.functions: Tuple = args
         self.return_value: bool = return_value
+        # TODO(?) add a Chain subclass used for authentication
 
     def __call__(self, update: Update, context: CallbackContext):
         last_return_value = None
