@@ -36,7 +36,7 @@ class GetVariableGeneric(TelegramFunctionBlueprint):
 
             the function should have 2 inputs and 1 output, like this:
 
-            func(input: str, event: TelegramEvent):
+            func(input, event: TelegramEvent):
                 return something
         :param return_value:
             the return value of the function, used to change state in conversation handlers.
@@ -46,10 +46,10 @@ class GetVariableGeneric(TelegramFunctionBlueprint):
 
             the function should have 2 inputs and optionally an integer output, like this:
 
-            func(input: str, var_name: str)
+            func(input, var_name: str)
                 ...
                 next_state: int = 1
-                return  next_state
+                return next_state
         """
         # set transformation
         if transformation_function:
