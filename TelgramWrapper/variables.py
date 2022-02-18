@@ -9,7 +9,13 @@ from TelgramWrapper.generics import TelegramFunctionBlueprint, TelegramEvent, Te
 
 class GetVariableGeneric(TelegramFunctionBlueprint):
 
-    def __init__(self, var_name: str or None, transformation_function: callable = None, return_value: int or None = None):
+    def __init__(
+            self,
+            var_name: str or None,
+            transformation_function: callable = None,
+            return_value: int or None = None,
+            custom_setter_function: callable or None = None
+    ):
         """
         Generic class to handle variables in the wrapper
 
@@ -26,16 +32,24 @@ class GetVariableGeneric(TelegramFunctionBlueprint):
             if you pass something like "obj_name.var" then this handler will try to put the received value in
             obj_name.var, where onj_name is the context key for the object and var is a variable of said object
         :param transformation_function:
-            a function that will take the variable
-            and transform it somehow before storing it.
+            a function that will take the variable and transform it somehow before storing it.
 
-            the function should have 1 input and 1 output, like this:
+            the function should have 2 inputs and 1 output, like this:
 
-            func(input):
+            func(input: str, event: TelegramEvent):
                 return something
         :param return_value:
             the return value of the function, used to change state in conversation handlers.
             Leave at None to not change state.
+        :param custom_setter_function:
+            a custom setter function useful for interacting with objects outside of the context.
+
+            the function should have 2 inputs and optionally an integer output, like this:
+
+            func(input: str, var_name: str)
+                ...
+                next_state: int = 1
+                return  next_state
         """
         # set transformation
         if transformation_function:
@@ -45,6 +59,9 @@ class GetVariableGeneric(TelegramFunctionBlueprint):
             self.__get: callable = self.__get_from_source_no_transform
         # set where to put the value
         if var_name:
+            if custom_setter_function:
+                self.logic: callable = self.__custom_setter_handler
+                self.custom_setter_function: callable = custom_setter_function
             if var_name.find(":") != -1:
                 self.logic: callable = self.__set_dict
                 split_var_name = var_name.split(":")
@@ -65,7 +82,7 @@ class GetVariableGeneric(TelegramFunctionBlueprint):
     # get handling
 
     def __get_from_source_transform(self, event: TelegramEvent):
-        return self.transformation_func(self.get_from_source(event))
+        return self.transformation_func(self.get_from_source(event), event)
 
     def __get_from_source_no_transform(self, event: TelegramEvent):
         return self.get_from_source(event)
@@ -84,6 +101,12 @@ class GetVariableGeneric(TelegramFunctionBlueprint):
         if event.context.chat_data[self.dict_name] is None:
             event.context.chat_data[self.dict_name] = {}
         event.context.chat_data[self.dict_name][self.var_name] = self.__get(event)
+        return self.return_value
+
+    def __custom_setter_handler(self, event: TelegramEvent):
+        return_value = self.custom_setter_function(self.__get(event), self.var_name)
+        if return_value:
+            return return_value
         return self.return_value
 
     def __no_set(self, event: TelegramEvent):
