@@ -4,6 +4,7 @@ from re import match
 from telegram import Update
 from telegram.ext import CallbackContext
 
+from TelgramWrapper.context import MATEVarSetter
 from TelgramWrapper.generics import TelegramFunctionBlueprint, TelegramEvent, TelegramUserError
 
 
@@ -62,19 +63,10 @@ class GetVariableGeneric(TelegramFunctionBlueprint):
             if custom_setter_function:
                 self.logic: callable = self.__custom_setter_handler
                 self.custom_setter_function: callable = custom_setter_function
-            if var_name.find(":") != -1:
-                self.logic: callable = self.__set_dict
-                split_var_name = var_name.split(":")
-                self.dict_name = split_var_name[0]
-                self.var_name = split_var_name[1]
-            elif var_name.find(".") != -1:
-                self.logic: callable = self.__set_object
-                split_var_name = var_name.split(".")
-                self.obj_name = split_var_name[0]
-                self.var_name = split_var_name[1]
+                self.var_name: str = var_name
             else:
-                self.logic: callable = self.__set_variable
-                self.var_name = var_name
+                self.logic: callable = self.__set
+                self.set_handler: MATEVarSetter = MATEVarSetter(var_name)
         else:
             self.logic = self.__no_set
         self.return_value = return_value
@@ -89,18 +81,8 @@ class GetVariableGeneric(TelegramFunctionBlueprint):
 
     # set handling
 
-    def __set_variable(self, event: TelegramEvent):
-        event.context.chat_data[self.var_name] = self.__get(event)
-        return self.return_value
-
-    def __set_object(self, event: TelegramEvent):
-        event.context.chat_data[self.obj_name].__dict__[self.var_name] = self.__get(event)
-        return self.return_value
-
-    def __set_dict(self, event: TelegramEvent):
-        if event.context.chat_data[self.dict_name] is None:
-            event.context.chat_data[self.dict_name] = {}
-        event.context.chat_data[self.dict_name][self.var_name] = self.__get(event)
+    def __set(self, event: TelegramEvent):
+        self.set_handler.logic(event)
         return self.return_value
 
     def __custom_setter_handler(self, event: TelegramEvent):

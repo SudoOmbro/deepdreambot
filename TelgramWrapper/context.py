@@ -13,17 +13,33 @@ from TelgramWrapper.generics import TelegramEvent
 
 
 class MATEVarHandler:
+    """
+    :param target:
+        the target variable to set/get. Special characters can change it's behaviour:
+        - target = "name":
+            simply set/retrieve the value of context.chat_data["name"]
+        - target = "dictionary:value"
+            set/retrieve the value of context.chat_data["dictionary"]["value"],
+            where context.chat_data["dictionary"] is a dictionary
+        - target = "object.variable":
+            set/retrieve the value of context.chat_data["object"].variable,
+            where context.chat_data["object"] is an object
+        - target = "_parameter":
+            retrieve the value "parameter" from update.effective_user (like "id" or "name")
+    """
 
     HANDLERS: Dict[int, Tuple[callable, callable or None]]
 
     # handlers structure:
     # type - handler, lambda to get the args or None
 
-    def __init__(self, target):
+    def __init__(self, target: str):
         var_type = self.__get_access_type(target)
+        # Get the correct handler from the inferred variable type. If there is no handler throw an Exception
         handlers: Tuple[callable, callable] = self.HANDLERS.get(var_type, None)
         if not handlers:
             raise ValueError(f"No handler for var_type {var_type} (target: {target})")
+        # Set logic and get args through the given lambda
         self.logic: callable = handlers[0]
         if handlers[1]:
             self.args = handlers[1](target)

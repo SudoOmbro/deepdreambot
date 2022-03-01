@@ -1,9 +1,10 @@
 import logging
 from re import search, findall
-from typing import List
+from typing import Dict
 
 from telegram import InlineKeyboardMarkup, ParseMode
 
+from TelgramWrapper.context import MATEVarGetter
 from TelgramWrapper.generics import TelegramFunctionBlueprint, TelegramEvent
 
 
@@ -21,10 +22,10 @@ FORMATTING_REGEX = r"\{([a-zA-Z]+)\}"
 
 # Formatting ----
 
-def _format_message(message_text: str, variables: List[str], event: TelegramEvent) -> str:
+def _format_message(message_text: str, variables: Dict[str, MATEVarGetter], event: TelegramEvent) -> str:
     result_message = message_text
     for var in variables:
-        result_message = result_message.replace(f"{{{var}}}", str(event.context.chat_data.get(var, "")))
+        result_message = result_message.replace(f"{{{var}}}", variables[var].logic(event))
     return result_message
 
 
@@ -32,18 +33,18 @@ def _has_formatting(message_text: str) -> bool:
     return search(FORMATTING_REGEX, message_text) is not None
 
 
-def _get_variable_names(message_text: str) -> List[str]:
-    result: List[str] = []
+def _get_variable_getters(message_text: str) -> Dict[str, MATEVarGetter]:
+    result: Dict[str, MATEVarGetter] = {}
     matches = findall(FORMATTING_REGEX, message_text)
     for variable in matches:
         if variable not in result:
-            result.append(variable)
+            result[variable] = MATEVarGetter(variable)
     return result
 
 
 def _autoformat_text(text_to_send: str, event: TelegramEvent):
     if _has_formatting(text_to_send):
-        return _format_message(text_to_send, _get_variable_names(text_to_send), event)
+        return _format_message(text_to_send, _get_variable_getters(text_to_send), event)
     return text_to_send
 
 
@@ -69,6 +70,9 @@ class Prompt(TelegramFunctionBlueprint):
             text of the message to send or the function used to generate it.
             If '{something}' is found in the text then the TelegramWrapper will try to format the text replacing all
             '{something}' instances with whatever context.chat_data['something'] contains.
+
+            see MATEVarHandler for more info on special characters in format strings
+
             Can be callable, the logic defined above still applies, see the format_text parameter for more info.
         :param keyboard:
             the inline keyboard to send or the function that will generate the inline keyboard to send.
@@ -111,7 +115,7 @@ class Prompt(TelegramFunctionBlueprint):
                         self.behaviour = self._call_and_send_noformat
         else:
             if _has_formatting(text):
-                self.variables = _get_variable_names(text)
+                self.variables = _get_variable_getters(text)
                 if type(keyboard) == callable:
                     self.behaviour = self._format_and_call
                 else:
@@ -184,7 +188,7 @@ class Prompt(TelegramFunctionBlueprint):
         text_to_send = text_func(event)
         event.context.bot.send_message(
             chat_id=event.chat_id,
-            text=_format_message(text_to_send, _get_variable_names(text_to_send), event),
+            text=_format_message(text_to_send, _get_variable_getters(text_to_send), event),
             reply_markup=keyboard_func(event),
             parse_mode=self.parse_mode,
             disable_web_page_preview=self.web_preview
@@ -212,7 +216,7 @@ class Prompt(TelegramFunctionBlueprint):
         text_to_send = text_func(event)
         event.context.bot.send_message(
             chat_id=event.chat_id,
-            text=_format_message(text_to_send, _get_variable_names(text_to_send), event),
+            text=_format_message(text_to_send, _get_variable_getters(text_to_send), event),
             reply_markup=keyboard,
             parse_mode=self.parse_mode,
             disable_web_page_preview=self.web_preview
